@@ -37,7 +37,7 @@ namespace SonarQube.Client.Api
         internal const int MaximumPageSize = 500;
         internal static readonly Version OrganizationsFeatureMinimalVersion = new Version(6, 2);
 
-        private readonly HttpMessageHandler messageHandler;
+        private readonly IMessageHandlerFactory messageHandlerFactory;
         private readonly RequestFactory requestFactory;
         public readonly string userAgent;
 
@@ -57,11 +57,11 @@ namespace SonarQube.Client.Api
 
         public bool IsConnected { get; private set; }
 
-        public SonarQubeService(HttpMessageHandler messageHandler, RequestFactory requestFactory, string userAgent)
+        public SonarQubeService(IMessageHandlerFactory messageHandlerFactory, RequestFactory requestFactory, string userAgent)
         {
-            if (messageHandler == null)
+            if (messageHandlerFactory == null)
             {
-                throw new ArgumentNullException(nameof(messageHandler));
+                throw new ArgumentNullException(nameof(messageHandlerFactory));
             }
             if (requestFactory == null)
             {
@@ -71,7 +71,7 @@ namespace SonarQube.Client.Api
             {
                 throw new ArgumentNullException(nameof(userAgent));
             }
-            this.messageHandler = messageHandler;
+            this.messageHandlerFactory = messageHandlerFactory;
             this.requestFactory = requestFactory;
             this.userAgent = userAgent;
         }
@@ -109,7 +109,7 @@ namespace SonarQube.Client.Api
 
         public async Task ConnectAsync(ConnectionInformation connection, CancellationToken token)
         {
-            httpClient = new HttpClient(messageHandler)
+            httpClient = new HttpClient(messageHandlerFactory.Create())
             {
                 BaseAddress = connection.ServerUri,
                 DefaultRequestHeaders =
@@ -123,14 +123,21 @@ namespace SonarQube.Client.Api
 
             IsConnected = true;
 
-            var versionResponse = await InvokeRequestAsync<IGetVersionRequest, string>(token);
-            sonarQubeVersion = Version.Parse(versionResponse);
+            try
+            {
+                var versionResponse = await InvokeRequestAsync<IGetVersionRequest, string>(token);
+                sonarQubeVersion = Version.Parse(versionResponse);
 
-            var credentialResponse = await InvokeRequestAsync<IValidateCredentialsRequest, bool>(token);
-            if (!credentialResponse)
+                var credentialResponse = await InvokeRequestAsync<IValidateCredentialsRequest, bool>(token);
+                if (!credentialResponse)
+                {
+                    throw new InvalidOperationException("Invalid credentials");
+                }
+            }
+            catch
             {
                 IsConnected = false;
-                throw new InvalidOperationException("Invalid credentials");
+                throw;
             }
         }
 

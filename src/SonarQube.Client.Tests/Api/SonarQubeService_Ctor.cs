@@ -19,11 +19,11 @@
  */
 
 using System;
-using System.Net.Http;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Client.Api;
+using SonarQube.Client.Services;
 
 namespace SonarQube.Client.Tests.Api
 {
@@ -36,12 +36,12 @@ namespace SonarQube.Client.Tests.Api
             Action action;
 
             action = () => new SonarQubeService(null, new RequestFactory(), string.Empty);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("messageHandler");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("messageHandlerFactory");
 
-            action = () => new SonarQubeService(new Mock<HttpClientHandler>().Object, null, string.Empty);
+            action = () => new SonarQubeService(new Mock<IMessageHandlerFactory>().Object, null, string.Empty);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("requestFactory");
 
-            action = () => new SonarQubeService(new Mock<HttpClientHandler>().Object, new RequestFactory(), null);
+            action = () => new SonarQubeService(new Mock<IMessageHandlerFactory>().Object, new RequestFactory(), null);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userAgent");
         }
     }

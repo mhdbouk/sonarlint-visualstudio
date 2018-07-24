@@ -18,26 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models;
+using System;
+using System.Net.Http;
+using SonarQube.Client.Services;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.Integration.Helpers
 {
-    /// <summary>
-    /// Data class containing the arguments required by the bind command
-    /// </summary>
-    internal class BindCommandArgs
+    public class LoggingMessageHandlerFactory : IMessageHandlerFactory
     {
-        public BindCommandArgs(string projectKey, string projectName, ConnectionInformation connection)
+        private readonly ILogger logger;
+
+        public LoggingMessageHandlerFactory(ILogger logger)
         {
-            this.ProjectKey = projectKey; ;
-            this.ProjectName = projectName;
-            this.Connection = connection;
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+            this.logger = logger;
         }
 
-        public string ProjectKey { get; }
-
-        public string ProjectName { get; }
-
-        public ConnectionInformation Connection { get; }
+        public HttpMessageHandler Create()
+        {
+            return new LoggingHttpClientHandler(logger);
+        }
     }
 }

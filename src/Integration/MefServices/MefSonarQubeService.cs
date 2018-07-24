@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     {
         [ImportingConstructor]
         public MefSonarQubeService(ILogger logger)
-            : base(new LoggingHttpClientHandler(logger),
+            : base(new LoggingMessageHandlerFactory(logger),
                 DefaultConfiguration.Configure(new RequestFactory(s => logger.LogDebug(s))),
                 userAgent: $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}")
         {

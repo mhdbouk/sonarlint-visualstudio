@@ -30,12 +30,14 @@ using Moq.Protected;
 using SonarQube.Client.Api;
 using SonarQube.Client.Api.Requests;
 using SonarQube.Client.Models;
+using SonarQube.Client.Services;
 
 namespace SonarQube.Client.Tests.Api
 {
     public class SonarQubeService_TestBase
     {
         protected Mock<HttpMessageHandler> messageHandler;
+        protected Mock<IMessageHandlerFactory> messageHandlerFactory;
         protected SonarQubeService service;
         private RequestFactory requestFactory;
 
@@ -47,11 +49,13 @@ namespace SonarQube.Client.Tests.Api
         public void TestInitialize()
         {
             messageHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            messageHandlerFactory = new Mock<IMessageHandlerFactory>(MockBehavior.Strict);
+            messageHandlerFactory.Setup(x => x.Create()).Returns(messageHandler.Object);
 
             requestFactory = new RequestFactory();
             DefaultConfiguration.Configure(requestFactory);
 
-            service = new SonarQubeService(messageHandler.Object, requestFactory, UserAgent);
+            service = new SonarQubeService(messageHandlerFactory.Object, requestFactory, UserAgent);
         }
 
         protected void SetupRequest(string relativePath, string response, HttpStatusCode statusCode = HttpStatusCode.OK)

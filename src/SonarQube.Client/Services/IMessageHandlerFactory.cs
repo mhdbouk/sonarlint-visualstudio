@@ -1,5 +1,5 @@
 ﻿/*
- * SonarLint for Visual Studio
+ * SonarQube Client
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -18,26 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models;
+using System.Net.Http;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarQube.Client.Services
 {
-    /// <summary>
-    /// Data class containing the arguments required by the bind command
-    /// </summary>
-    internal class BindCommandArgs
+    public interface IMessageHandlerFactory
     {
-        public BindCommandArgs(string projectKey, string projectName, ConnectionInformation connection)
-        {
-            this.ProjectKey = projectKey; ;
-            this.ProjectName = projectName;
-            this.Connection = connection;
-        }
-
-        public string ProjectKey { get; }
-
-        public string ProjectName { get; }
-
-        public ConnectionInformation Connection { get; }
+        HttpMessageHandler Create();
     }
 }
